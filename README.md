@@ -85,10 +85,28 @@ wrote a node that:
 
 FAST-LIO2 then sees one 360° LiDAR plus the X25 EVO's IMU, and works normally.
 
-<p align="center">
-  <img src="media/merged_lidars_rviz_2.jpg" width="640" alt="Two LiDAR clouds overlapping in RViz"><br>
-  <em>Two of the LiDARs (orange and cyan) in RViz, overlapping in the middle.</em>
-</p>
+### Getting the extrinsics right (TF tree)
+
+The common body frame is `base_link`, and I put `base_link` at the **X25 EVO flight
+controller**. Each of the four LiDARs has a static transform (position + rotation) from
+`base_link` to that LiDAR, published with tf2. Because the IMU is inside the flight
+controller, the merged cloud ends up in the same frame as the IMU, which is what FAST-LIO2
+expects.
+
+The merge is only as good as these four transforms. At first the transforms were not exact, and
+the clouds did not line up. In the picture below, the floor and the walls seen by the
+orange LiDAR and the cyan LiDAR are offset and tilted against each other. Feeding a cloud
+like this to FAST-LIO2 would give double walls and a wrong map, so this was not acceptable.
+
+I then took the exact mounting positions and angles of every LiDAR relative to the flight
+controller from the **CAD model** of the frame and put them into the static transforms.
+After that, the two clouds overlapped correctly: the same wall from both LiDARs falls in
+the same place.
+
+| Before: transforms not exact | After: transforms from the CAD model |
+|---|---|
+| ![Misaligned LiDAR clouds](media/extrinsics_before_cad.jpg) | ![Aligned LiDAR clouds](media/extrinsics_after_cad.jpg) |
+| Orange and cyan clouds offset and tilted, the same surfaces show up twice | Both clouds line up in the overlap area in the middle |
 
 ## 4. Why FAST-LIO2
 
@@ -136,10 +154,10 @@ localisation, mapping and control are being proven, and it can be extended to fu
   <em>A mapping run (sped up): the map building around the sensor, with the estimated path.</em>
 </p>
 
-| | |
-|---|---|
-| ![Height coloured map](media/map_height_coloured.jpg) | ![Merged clouds](media/merged_lidars_rviz_1.jpg) |
-| Map of the lab, coloured by height | Overlapping LiDAR clouds in RViz |
+<p align="center">
+  <img src="media/map_height_coloured.jpg" width="560" alt="Map of the lab coloured by height"><br>
+  <em>Map of the lab, coloured by height.</em>
+</p>
 
 ## Where it is now
 
